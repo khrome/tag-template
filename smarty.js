@@ -78,53 +78,6 @@ var SmartyTemplate = new Class({
         }, this));
     }
 });
-
-/*
-var Smarty = new Class({
-    Extends : TagTemplate,
-    Implements : [TemplateData],
-    parent : false,
-    targets : {},
-    initialize: function(text, options){
-        this.options = options;
-        this.parent(text, {
-            strict : true,
-            opener : '{',
-            closer : '}',
-            attributeAssign : '=',
-            attributeDelimiters : ['"', "'"],
-            closeEscape : '/',
-            allowUndelimitedAttributes : true,
-            literalTags : ['literal'],
-            specialTags : {
-                'if':function(text){
-                    
-                },
-                'foreach':function(text){
-                
-                }
-            }
-        });
-        this.tagRegistry.register('test', function(node){
-            return 'this is a test';
-        });
-    },
-    renderNode : function(node){
-        if(type(node) == 'string'){
-            return node;
-        }else{
-            if(Smarty.macros[node.name]){
-                return Smarty.macros[node.name](node, this);
-            }else if(node.name.substring(0,1) == '$'){
-                return this.get(node.name.substring(1)) || '';
-            }else return '';
-        }
-    },
-    getVariable : function(variable){
-        return this.get(variable);
-    }
-});
-//*/
 SmartyTemplate.macros = {
     'foreach': function(node, template){
         var res = '';

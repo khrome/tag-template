@@ -1,0 +1,37 @@
+{
+    "name": "tag-template",
+    "homepage": "https://github.com/khrome/tag-template",
+    "version": "0.0.1-alpha",
+    "main": "tag-template.js",
+    "description": "A utility for template parsing and rendering. Implementations for Smarty, Handlebars and UBB. Easy to extend.",
+    "keywords": [
+        "templates",
+        "smarty",
+        "ubb",
+        ""
+    ],
+    "author": "Abbey Hawk Sparrow <@khrome> (http://patternweaver.com)",
+    "contributors": [],
+    "bugs": {
+        "url": "https://github.com/khrome/tag-template/issues"
+    },
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git@github.com:khrome/tag-template.git"
+    },
+    "dependencies": {
+        "prime": "*",
+        "Classy": "*",
+        "tag-parser": "*"
+    },
+    "devDependencies": {
+        "mocha": "*",
+        "should": "*"
+    },
+    "optionalDependencies": {
+    },
+    "engines": {
+        "node": "*"
+    }
+}

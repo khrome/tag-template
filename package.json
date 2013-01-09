@@ -8,7 +8,7 @@
         "templates",
         "smarty",
         "ubb",
-        ""
+        "handlebars"
     ],
     "author": "Abbey Hawk Sparrow <@khrome> (http://patternweaver.com)",
     "contributors": [],

@@ -78,7 +78,7 @@ Then you just need to extend renderNode in order to output the results from a gi
     
 UBB
 ---
-UBB Codes are an ancient mapping to allow basic markup in posts but restrict users usage of HTML, particularly popular on Forums. Check out some (http://www.freebok.net/help/ubbcode.html)[UBB Code] docs for information.
+UBB Codes are an ancient mapping to allow basic markup in posts but restrict users usage of HTML, particularly popular on Forums. Check out some [UBB Code](http://www.freebok.net/help/ubbcode.html) docs for information.
 
 Include it:
 

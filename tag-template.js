@@ -22,7 +22,7 @@ var TagTemplate = new Class({
         this.parent();
         // todo: hash 
         //if(!(this.parser = this.tagRegistry.require(options.name))){
-            this.parser = new TagParser(options.environments || []);
+            this.parser = new TagParser(options.environments || [], options.onComplete);
             this.tagRegistry.register(options.name, this.parser);
         //}
         this.parser.on('parse', fn.bind(function(node){

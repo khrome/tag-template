@@ -3,11 +3,16 @@ var ext = require('prime-ext');
 var prime = ext(require('prime'));
 var array = ext(require('prime/es5/array'));
 var fn = require('prime/es5/function');
+var string = ext(require('prime/es5/string'));
 var type = require('prime/util/type');
 
 var TagTemplate = require('./tag-template');
 
 function pushChild(parent, child){
+    if(!parent.name){
+        console.log((new Error()).stack);
+        throw('tried to add a child to a string:'+parent);
+    }
     if(!parent.children) parent.children = [];
     parent.children.push(child);
 }
@@ -24,14 +29,28 @@ var SmartyTemplate = new Class({
                     sentinels : [['{', '}']],
                     onParse : fn.bind(function(tag, parser){
                         if(parser.text != ''){
-                            pushChild(this.parser.tagStack[this.parser.tagStack.length-1], parser.text);
+                            this.parser.tagStack.push(parser.text);
                             parser.text = ''
                         }
                         if(tag.name && tag.name[0] == '/'){
                             tag.name = tag.name.substring(1);
                             var matched = this.parser.tagStack.pop();
-                            if(matched.name.toLowerCase() !== tag.name.toLowerCase()) throw('strict parse error!');
-                            pushChild(this.parser.tagStack[this.parser.tagStack.length-1], matched);
+                            var children = [];
+                            if(!matched.name){ //text node?
+                                children.unshift(matched);
+                                matched = this.parser.tagStack.pop();
+                            }
+                            while( type(matched) === 'string' || matched.closed || matched.name.toLowerCase() !== tag.name.toLowerCase() ){
+                                children.unshift(matched);
+                                matched = this.parser.tagStack.pop();
+                                if(this.parser.tagStack.length === 0) throw('Unmatched tag:'+tag.name)
+                            }
+                            matched.closed = true;
+                            if(this.parser.tagStack.length == 0) throw('Empty tag stack');
+                            this.parser.tagStack.push(matched);
+                            array.forEach(children, function(child){
+                                pushChild(matched, child);
+                            });
                         }else{
                             var args = [];
                             var options = {};
@@ -44,18 +63,30 @@ var SmartyTemplate = new Class({
                             options.subrender = fn.bind(function(callback){
                                     return this.renderChildren(tag, callback)
                             }, this);
-                            //if(!SmartyTemplate.macros[tag.name]) throw('unknown helper macro: '+tag.name);
-                            var macro = SmartyTemplate.macros[tag.name];
-                            if(macro) this.parser.tagStack.push(tag); //stack binary tags
-                            else pushChild(this.parser.tagStack[this.parser.tagStack.length-1], tag); //just attach leaves to parents
+                            this.parser.tagStack.push(tag); //stack binary tags
                         }
                     }, this)
                 }
-            ]
+            ],
+            onComplete : function(){
+                //make sure all unclosed tags are closed/attached to the root
+                //(everything hanging belongs to root)
+                var children = [];
+                while(this.tagStack.length > 1){
+                    children.unshift(this.tagStack.pop());
+                }
+                array.forEach(children, fn.bind(function(child){
+                    pushChild(this.tagStack[0], child);
+                }, this));
+            }
         });
     },
     getVariable :  function(name){
         return this.get(name);
+    },
+    getRoot : function(){ //ok, so maybe more than smarty normally supports :P
+        if(this.progenitor) return this.progenitor.getRoot();
+        else return this;
     },
     renderNode : function(node){
         if(type(node) == 'string'){
@@ -64,7 +95,8 @@ var SmartyTemplate = new Class({
             if(SmartyTemplate.macros[node.name]){
                 return SmartyTemplate.macros[node.name](node, this);
             }else if(node.name.substring(0,1) == '$'){
-                return this.get(node.name.substring(1)) || '';
+                var raw = this.get(node.name.substring(1));
+                return (raw == undefined)?'':raw;
             }else return '';
         }
     },
@@ -103,8 +135,8 @@ SmartyTemplate.macros = {
     },
     'if': function(node, template){
         var res = '';
-        node.clause = node.full.substring(2).trim();
-        var conditionResult = template.evaluateSmartyPHPHybridBooleanExpression(node.clause);
+        node.clause = node.text.substring(2).trim();
+        var conditionResult = SmartyTemplate.util.evaluateSmartyPHPHybridBooleanExpression(node.clause, template);
         var blocks = {'if':[]};
         array.forEach(node.children, fn.bind(function(child){
             if(blocks['else'] !== undefined){
@@ -133,7 +165,7 @@ SmartyTemplate.macros = {
     }
 };
 SmartyTemplate.util = {
-    evaluateSmartyPHPHybridBooleanExpression : function(expression){
+    evaluateSmartyPHPHybridBooleanExpression : function(expression, template){
         //var pattern = /[Ii][Ff] +(\$[A-Za-z][A-Za-z0-9.]*) *$/s;
         var pattern;
         var parts;
@@ -151,8 +183,8 @@ SmartyTemplate.util = {
             pattern = new RegExp('(.*)( eq| ne| gt| lt| ge| le|!=|==|>=|<=|<|>)(.*)', 'm');
             parts = expression.match(pattern);
             if(parts && parts.length > 3){
-                var varOne = this.evaluateSmartyPHPHybridVariable(parts[1].trim());
-                var varTwo = this.evaluateSmartyPHPHybridVariable(parts[3].trim());
+                var varOne = this.evaluateSmartyPHPHybridVariable(parts[1].trim(), template);
+                var varTwo = this.evaluateSmartyPHPHybridVariable(parts[3].trim(), template);
                 var res;
                 switch(parts[2]){
                     case '==':
@@ -189,7 +221,7 @@ SmartyTemplate.util = {
                 }else if(expression == 'true' || expression == 'false'){ //boolean
                     res = eval(expression);
                 }else{
-                    res = this.evaluateSmartyPHPHybridVariable(expression);
+                    res = this.evaluateSmartyPHPHybridVariable(expression, template);
                     res = (res != null && res != undefined && res != '' && res != false);
                 }
                 return res;
@@ -220,7 +252,7 @@ SmartyTemplate.util = {
         });
         return value;
     },
-    evaluateSmartyPHPHybridVariable : function(accessor, isConf){
+    evaluateSmartyPHPHybridVariable : function(accessor, template, isConf){
         if(isConf == 'undefined' || isConf == null) isConf = false;
         if(!accessor) return '';
         if(string.startsWith(accessor.toLowerCase(), '\'') && string.endsWith(accessor.toLowerCase(), '\'')) return accessor.substr(1, accessor.length-2);
@@ -228,13 +260,13 @@ SmartyTemplate.util = {
         if(string.startsWith(accessor.toLowerCase(), '$smarty.')) return this.get(accessor.substr(8));
         if(string.startsWith(accessor, '$')){
             var acc = accessor.substring(1);
-            return this.get(acc);
+            return template.get(acc);
         }
         if(string.startsWith(accessor, '#') && string.endsWith(accessor, '#')){
             var cnf = accessor.substr(1, accessor.length-2);
             return this.evaluateSmartyPHPHybridVariable( cnf , true);
         }
-        return this.get(accessor);
+        return template.get(accessor);
         var parts = accessor.split('.');
         parts.reverse();
         var currentPart = parts.pop();

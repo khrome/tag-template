@@ -1,7 +1,7 @@
 {
     "name": "tag-template",
     "homepage": "https://github.com/khrome/tag-template",
-    "version": "0.0.2-alpha",
+    "version": "0.0.3-alpha",
     "main": "tag-template.js",
     "description": "A utility for template parsing and rendering. Implementations for Smarty, Handlebars and UBB. Easy to extend.",
     "keywords": [

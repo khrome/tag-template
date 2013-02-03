@@ -1,5 +1,5 @@
-var Class = require('Classy');
-var Data = new Class({
+var prime = require('prime');
+var Data = prime({
     data : {},
     set: function(key, value){
         var accessor = 'this.data';

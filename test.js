@@ -1,5 +1,4 @@
 var should = require("should");
-var request = require("request");
 var type = require('prime/util/type');
 var Handlebars = require('./handlebars');
 var UBB = require('./ubb');

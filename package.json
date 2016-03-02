@@ -21,16 +21,17 @@
         "url": "git@github.com:khrome/tag-template.git"
     },
     "dependencies": {
-        "prime": "0.0.5-alpha",
         "Classy": "*",
-        "tag-parser": "*"
+        "prime": "0.0.5-alpha",
+        "prime-ext": "0.0.8-alpha",
+        "tag-parser": "*",
+        "validator": "^3.39.0"
     },
     "devDependencies": {
         "mocha": "*",
         "should": "*"
     },
-    "optionalDependencies": {
-    },
+    "optionalDependencies": {},
     "engines": {
         "node": "*"
     }

@@ -1,5 +1,10 @@
 tag-template.js
 ==============
+
+[![NPM version](https://img.shields.io/npm/v/tag-template.svg)]()
+[![npm](https://img.shields.io/npm/dt/tag-template.svg)]()
+[![Travis](https://img.shields.io/travis/khrome/tag-template.svg)]()
+
 An NPM for template parsing and rendering supporting Smarty(the syntax, not all of php), Handlebars and UBB. Easy to extend to make your own tag parser.
 
 Usage as a Base Class
